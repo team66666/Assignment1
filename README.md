@@ -20,7 +20,7 @@ Extra columns:
 retail_data <- read.csv("online_retail.csv",header=TRUE)
 head(retail_data) 
 dim(retail_data) #contains 541909 obs, 8 columns <br>
-length(unique(retail_data$CustomerID)) #4373 unique customer IDs <br>
+length(unique(retail_data$CustomerID)) #4373 unique customer IDs 
 
 
 # DATA CLEANING PORTION
@@ -37,8 +37,8 @@ retail_data$TotalSpent = retail_data$Quantity * retail_data$UnitPrice
 # RFM MODEL
 #Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
 
-total_visits <- NULL  <br> 
-total_amount <- NULL   <br>
+total_visits <- NULL  
+total_amount <- NULL   
 since_prev <- NULL
 for (id in unique(retail_data$CustomerID)) {
   total_visits <- c(total_visits, sum(retail_data$CustomerID == id))
