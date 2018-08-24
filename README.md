@@ -19,7 +19,7 @@ Extra columns:
 # Reading the data
 retail_data <- read.csv("online_retail.csv",header=TRUE)
 head(retail_data) 
-dim(retail_data) #contains 541909 obs, 8 columns <br>
+dim(retail_data) #contains 541909 obs, 8 columns 
 length(unique(retail_data$CustomerID)) #4373 unique customer IDs 
 
 
