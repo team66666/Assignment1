@@ -1,6 +1,6 @@
 # Assignment1
 
-# DESCRIPTION OF DATA
+# Description of Data
 - InvoiceNo: Invoice number. Nominal, a 6-digit integral number uniquely assigned to each transaction. If this code starts with letter 'c', it indicates a cancellation. 
 - StockCode: Product (item) code. Nominal, a 5-digit integral number uniquely assigned to each distinct product. 
 - Description: Product (item) name. Nominal. 
@@ -38,8 +38,8 @@ retail_data$TotalSpent = retail_data$Quantity * retail_data$UnitPrice
 # RFM MODEL
 //Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
 
-total_visits <- NULL 
-total_amount <- NULL
+total_visits <- NULL  <br> 
+total_amount <- NULL   <br>
 since_prev <- NULL
 for (id in unique(retail_data$CustomerID)) {
   total_visits <- c(total_visits, sum(retail_data$CustomerID == id))
@@ -57,8 +57,6 @@ customer_retail_data <- data.frame(id=unique(retail_data$CustomerID),
                                    total_amount=total_amount,
                                    since_prev=since_prev)
 head(customer_retail_data)
-
-
 
 customers <- data.frame(cid = unique(retail_data$CustomerID))
 The following commands assign the recency, frequency, and monetary value rating on a scale of 1-5 with 5 being the most recent, most frequent, most monetary value, and 1 being the least recent, least frequent and least monetary value.
@@ -89,4 +87,4 @@ customers$rfm <- (customers$recency*100
                   + customers$frequency*10
                   + customers$amount)
 head(customers)
-##########################################################################################################
+
