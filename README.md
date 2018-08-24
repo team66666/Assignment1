@@ -17,26 +17,25 @@ Extra columns:
 
 
 # Reading the data
-retail_data <- read.csv("online_retail.csv",header=TRUE) 
-head(retail_data)
-dim(retail_data) #contains 541909 obs, 8 columns
-length(unique(retail_data$CustomerID)) #4373 unique customer IDs
+retail_data <- read.csv("online_retail.csv",header=TRUE)
+head(retail_data) 
+dim(retail_data) #contains 541909 obs, 8 columns <br>
+length(unique(retail_data$CustomerID)) #4373 unique customer IDs <br>
 
 
 # DATA CLEANING PORTION
 
-Creating a Date & Time column
-retail_data$Time <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %I:%M"),"%I:%M")
-retail_data$Date <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %I:%M"),"%Y-%m-%d")
+#Creating a Date & Time column <br>
+retail_data$Time <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %I:%M"),"%I:%M") 
+retail_data$Date <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %I:%M"),"%Y-%m-%d") 
 
-Creating a TotalSpent column
+#Creating a TotalSpent column
 retail_data$TotalSpent = retail_data$Quantity * retail_data$UnitPrice
 
-########################################################################################################
 
 
 # RFM MODEL
-//Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
+#Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
 
 total_visits <- NULL  <br> 
 total_amount <- NULL   <br>
@@ -59,9 +58,10 @@ customer_retail_data <- data.frame(id=unique(retail_data$CustomerID),
 head(customer_retail_data)
 
 customers <- data.frame(cid = unique(retail_data$CustomerID))
-The following commands assign the recency, frequency, and monetary value rating on a scale of 1-5 with 5 being the most recent, most frequent, most monetary value, and 1 being the least recent, least frequent and least monetary value.
 
-//New R, F, M-score assigning function.
+#The following commands assign the recency, frequency, and monetary value rating on a scale of 1-5 with 5 being the most recent, most frequent, most monetary value, and 1 being the least recent, least frequent and least monetary value.
+
+#New R, F, M-score assigning function.
 map_quantiles <- function(vect, num_groups=5) {
   ranks <- order(vect)
   result <- numeric(length(vect))
