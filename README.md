@@ -82,7 +82,7 @@ customers$frequency <- map_quantiles(customer_retail_data$total_visits)
 
 customers$amount <- map_quantiles(customer_retail_data$total_amount)
 
-// The RFM score is then a concatenation of the above three scores. Here is its calculation:
+#The RFM score is then a concatenation of the above three scores. Here is its calculation:
 customers$rfm <- (customers$recency*100
                   + customers$frequency*10
                   + customers$amount)
