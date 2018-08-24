@@ -1,14 +1,14 @@
 # Assignment1
 
 # DESCRIPTION OF DATA
--InvoiceNo: Invoice number. Nominal, a 6-digit integral number uniquely assigned to each transaction. If this code starts with letter 'c', it indicates a cancellation. 
--StockCode: Product (item) code. Nominal, a 5-digit integral number uniquely assigned to each distinct product. 
--Description: Product (item) name. Nominal. 
--Quantity: The quantities of each product (item) per transaction. Numeric.	
--InvoiceDate: Invice Date and time. Numeric, the day and time when each transaction was generated. 
--UnitPrice: Unit price. Numeric, Product price per unit in sterling. 
--CustomerID: Customer number. Nominal, a 5-digit integral number uniquely assigned to each customer. 
--Country: Country name. Nominal, the name of the country where each customer resides.
+- InvoiceNo: Invoice number. Nominal, a 6-digit integral number uniquely assigned to each transaction. If this code starts with letter 'c', it indicates a cancellation. 
+- StockCode: Product (item) code. Nominal, a 5-digit integral number uniquely assigned to each distinct product. 
+- Description: Product (item) name. Nominal. 
+- Quantity: The quantities of each product (item) per transaction. Numeric.	
+- InvoiceDate: Invice Date and time. Numeric, the day and time when each transaction was generated. 
+- UnitPrice: Unit price. Numeric, Product price per unit in sterling. 
+- CustomerID: Customer number. Nominal, a 5-digit integral number uniquely assigned to each customer. 
+- Country: Country name. Nominal, the name of the country where each customer resides.
 
 Extra columns:
 - Date: Date in YYYY-mm-dd format
@@ -35,10 +35,10 @@ retail_data$TotalSpent = retail_data$Quantity * retail_data$UnitPrice
 ########################################################################################################
 
 
-# RFM MODEL(Run only when data is fully cleaned, & amend accordingly if theres a need to)
-
+# RFM MODEL
 //Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
-total_visits <- NULL
+
+total_visits <- NULL 
 total_amount <- NULL
 since_prev <- NULL
 for (id in unique(retail_data$CustomerID)) {
