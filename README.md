@@ -34,7 +34,7 @@ retail_data$TotalSpent = retail_data$Quantity * retail_data$UnitPrice
 
 
 
-# RFM MODEL
+# RFM MODEL (change accordingly after data is fully cleaned!!)
 #Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
 
 total_visits <- NULL  
