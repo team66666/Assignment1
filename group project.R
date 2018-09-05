@@ -43,7 +43,27 @@ number2 <- number[-c(14:28,58:59,152:156,167,174,179:186,321,323,598,603,649,655
                      3835,3976:3978,3986,3989:3997,4167:4181),]
 new_retail_data <- retail_data[retail_data$Description %in% number2[,1],]
 
+missingCust <- new_retail_data %>% filter(is.na(CustomerID))
+knownCust <- new_retail_data %>% filter(!is.na(CustomerID))
+intersect(missingCust$InvoiceNo,knownCust$InvoiceNo)
 
+#Since the intersect of the InvoiceNo for those with missing and known CustomerID is empty,
+# there are no rows with missing CustomerID that can be filled using InvoiceNo
+
+missingDctn <- new_retail_data %>% filter(Description == "")
+knownDctn <- new_retail_data %>% filter(Description != "")
+intersect(missingDctn$StockCode, knownDctn$StockCode)
+
+unknownDctn <- unique(subset(new_retail_data,new_retail_data$Description == "", "StockCode"))
+foundDctn <- unique(subset(new_retail_data,StockCode %in% unknownDctn$StockCode & new_retail_data$Description != ""))
+for(i in unknownDctn$StockCode) {
+  if (i %in% foundDctn$StockCode) {
+    new_retail_data[new_retail_data$StockCode == i,"Description"] <- subset(foundDctn,StockCode %in% i,"Description")[1,]
+  }  
+}
+
+new_retail_data %>% filter(Description == "") %>% dim()
+# There are still 124 rows without Description
 
 #####################################
 #                                   #
