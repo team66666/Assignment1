@@ -108,6 +108,27 @@ retail_wo_CID <- rbind(retail_filled, retail_data_w_description_wo_CID)
 #This is the all the data without CustomerID.
 #Combine this with retail_data_DescandCID to obtain data that can be used for analysis that does not require CustomerID.
 
+#Removing those with InvoiceNo. starting with "C"
+retail_data_DescandCID <- retail_data_DescandCID %>% filter(!str_detect(InvoiceNo,"C"))
+
+#Removing those with very large quantity (>12000)
+retail_data_DescandCID <- retail_data_DescandCID %>% filter(Quantity <= 12000)
+
+#Removing those with quantity > 1600 & Unitprice==0
+retail_data_DescandCID <- retail_data_DescandCID %>% filter(Quantity<1600 && UnitPrice!=0)
+
+#Converting the Date column to a "DATE" class.
+retail_data_DescandCID$Date <- as.Date(retail_data_DescandCID$Date)
+
+#(start)dec 2010 - march 2011(end)
+rfm_data_1 <- retail_data_DescandCID %>% filter(Date <= as.Date("2011-03-31"))
+
+#(start)april 2011 - july 2011(end)
+rfm_data_2 <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-04-01")) %>% filter(Date < as.Date("2011-07-01")) 
+
+#(start)aug 2011 - dec 2011(end)
+rfm_data_3 <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-07-01"))
+
 #####################################
 #                                   #
 #            RFM Model              #
