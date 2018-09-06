@@ -17,10 +17,13 @@ length(unique(retail_data$CustomerID)) #4373 unique customer IDs
 #          Data Cleaning            #
 #                                   #
 #####################################
+#Convert Invoice date to character class first 
+
+invoicedate <- as.character(retail_data$InvoiceDate)
 
 #Creating a Date & Time column 
-retail_data$Time <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %H:%M"),"%H:%M")
-retail_data$Date <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %H:%M"),"%Y-%m-%d")
+retail_data$Time <- format(as.POSIXct(invoicedate,format="%d/%m/%Y %H:%M"),"%H:%M")
+retail_data$Date <- format(as.POSIXct(invoicedate,format="%d/%m/%Y %H:%M"),"%Y-%m-%d")
 retail_data$InvoiceDate <- NULL
 
 #Creating a TotalSpent column
@@ -132,52 +135,57 @@ rfm_data_3 <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-07-01"))
 #                                   #
 #####################################
 
-#Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
-total_visits <- NULL
-total_amount <- NULL
-since_prev <- NULL
-for (id in unique(retail_data$CustomerID)) {
-  total_visits <- c(total_visits, sum(retail_data$CustomerID == id))
-  total_amount <- c(total_amount, sum(retail_data$totalspent[retail_data$CustomerID == id]))
-  since_prev <- c(since_prev, min(as.numeric(as.Date("2011-11-01") - retail_data$Date[retail_data$CustomerID == id])))
-  }
 
-head(total_visits)
-length(total_visits) #4372 unique visits(i.e unique customer ID)
-head(total_amount)
+library(dplyr)
+library(gtools)
 
-customer_retail_data <- data.frame(id=unique(retail_data$CustomerID),
-                                   total_visits=total_visits,
-                                   total_amount=total_amount,
-                                   since_prev=since_prev)
-head(customer_retail_data)
+#total spent for each invoice
 
-customers <- data.frame(cid = unique(retail_data$CustomerID))
+t <- group_by(new_retail_data, InvoiceNo, Date, CustomerID ) %>% summarise(TotalSum = sum(TotalSpent))
+t<- t[order(t$CustomerID),]
 
-#The following commands assign the recency, frequency, and monetary value rating on a scale of 1-5 with 5 being the most recent,
-#most frequent, most monetary value, and 1 being the least recent, least frequent and least monetary value.
+#getting the rfm
+#getting the m first by finding the total amount spent by that customer
+tempm <- group_by(t, CustomerID) %>% summarise(Customertotal = sum(TotalSum))
 
-#New R, F, M-score assigning function.
-map_quantiles <- function(vect, num_groups=5) { 
-  ranks <- order(vect)
-  result <- numeric(length(vect))
-  one_unit <- floor(length(vect) / num_groups)
-  for (index in 1:num_groups) { 
-    if (index == num_groups) { 
-      result[(index - 1) * one_unit < ranks] <- index 
-    } else {
-        result[(index - 1) * one_unit < ranks & ranks <= index * one_unit] <- index 
-    }
-  } 
-  result
-}
+library(plyr)
+m <- quantcut(tempm$Customertotal, 5)
+levelm <- levels(m)
+m <- mapvalues(m,  from = levelm, to = c(1,2,3,4,5))
 
-customers$recency <- 6 - map_quantiles(customer_retail_data$since_prev)
+#getting the f
+t$CustomerID <- as.factor(t$CustomerID)
+detach("package:plyr", unload=TRUE) 
+library(dplyr)
+temp <- group_by(t, CustomerID) %>% summarise(count = n())
 
-customers$frequency <- map_quantiles(customer_retail_data$total_visits)
+library(plyr)
+f <- quantcut(temp$count, 5)
+levelf <- levels(f)
+f<- mapvalues(f,  from = levelf, to = c(1,2,3,4,5))
 
-customers$amount <- map_quantiles(customer_retail_data$total_amount)
+detach("package:plyr", unload=TRUE) 
+library(dplyr)
 
-#The RFM score is then a concatenation of the above three scores. Here is its calculation:
-customers$rfm <- (customers$recency*100 + customers$frequency*10 + customers$amount)
-head(customers)
+#getting the r
+
+rf <-data.frame(CID = unique(t$CustomerID), Recency = numeric(length(rf$CID)))
+
+nowvalue <- as.numeric(as.Date("2018-09-01"))
+
+Datevalue = nowvalue - as.numeric(as.Date(as.character(t$Date), "%Y-%m-%d")) 
+
+library(tidyverse)
+tempr <- add_column(t, Datevalue)
+
+tempr <- group_by(tempr, CustomerID) %>% summarise(r = min(Datevalue))
+library(plyr)
+r <- quantcut(tempr$r, 5)
+levelr<- levels(r)
+r<- mapvalues(r,  from = levelr, to = c(5,4,3,2,1))
+detach("package:plyr", unload=TRUE) 
+
+#Getting the RFM values
+rfm <- data.frame(CID = tempr$CustomerID, r = r, f = f, m =m, stringsAsFactors=FALSE)
+rfm <- add_column(rfm,RFM = paste(rfm$r, rfm$f,rfm$m, sep = ""))
+
