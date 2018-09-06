@@ -48,22 +48,62 @@ knownCust <- new_retail_data %>% filter(!is.na(CustomerID))
 intersect(missingCust$InvoiceNo,knownCust$InvoiceNo)
 
 #Since the intersect of the InvoiceNo for those with missing and known CustomerID is empty,
-# there are no rows with missing CustomerID that can be filled using InvoiceNo
+# there are no rows with missing CustomerID that can be filled using InvoiceNo.
 
+#Below we split the dataset into those with descriptions and those without. 
 missingDctn <- new_retail_data %>% filter(Description == "")
-knownDctn <- new_retail_data %>% filter(Description != "")
-intersect(missingDctn$StockCode, knownDctn$StockCode)
+retail_data_w_description <- new_retail_data %>% filter(Description != "")
+intersect(missingDctn$StockCode, retail_data_w_description$StockCode)
 
-unknownDctn <- unique(subset(new_retail_data,new_retail_data$Description == "", "StockCode"))
+retail_data_DescandCID <- retail_data_w_description %>% filter(!is.na(CustomerID))
+retail_data_w_description_wo_CID <- retail_data_w_description %>% filter(is.na(CustomerID))
+#retail_data_w_description is split into those with CID and those without.
+#retail_data_DescandCID is data that has BOTH Description and CID. (Use for Analysis where CustomerID is needed)
+
+
+#For the data without descriptions, we fill in the descriptions using StockCode.
+missingDctn %>% filter(!is.na(CustomerID))
+#There are no products that are missing description and have a CustomerID.
+dim(missingDctn)
+#1454 rows without Descriptions
+
+unknownDctn <- unique(subset(missingDctn,missingDctn$Description == "", "StockCode"))
 foundDctn <- unique(subset(new_retail_data,StockCode %in% unknownDctn$StockCode & new_retail_data$Description != ""))
 for(i in unknownDctn$StockCode) {
   if (i %in% foundDctn$StockCode) {
-    new_retail_data[new_retail_data$StockCode == i,"Description"] <- subset(foundDctn,StockCode %in% i,"Description")[1,]
+    missingDctn[missingDctn$StockCode == i,"Description"] <- subset(foundDctn,StockCode %in% i,"Description")[1,]
+  }  
+}
+missingDctn %>% filter(Description == "") %>% dim()
+#There are still 124 rows without Descriptions.
+
+#Removing rows without descriptions
+retail_filled_descriptions <- missingDctn %>% filter(Description != "")
+
+retail_filled_descriptions %>% filter(UnitPrice == 0) %>% dim()
+retail_filled_descriptions %>% dim()
+#All 1330 rows in retail_filled_description have UnitPrice = 0.
+
+unknownPrice <- unique(subset(retail_filled_descriptions,retail_filled_descriptions$UnitPrice == 0, "StockCode"))
+foundPrice <- unique(subset(new_retail_data,StockCode %in% unknownPrice$StockCode & new_retail_data$UnitPrice != 0)) %>% arrange(StockCode,desc(Date, Time))
+for(i in unknownPrice$StockCode) {
+  if (i %in% foundPrice$StockCode) {
+    retail_filled_descriptions[retail_filled_descriptions$StockCode == i,"UnitPrice"] <- subset(foundPrice,StockCode %in% i,"UnitPrice")[1,]
   }  
 }
 
-new_retail_data %>% filter(Description == "") %>% dim()
-# There are still 124 rows without Description
+retail_filled_descriptions %>% filter(UnitPrice == 0) %>% dim()
+#There are still 26 rows with UnitPrice = 0.
+
+retail_filled <- retail_filled_descriptions %>% filter(UnitPrice!= 0)
+#This is the data with filled descriptions and price
+
+#Update the TotalSpent column
+retail_filled$TotalSpent = retail_filled$Quantity * retail_filled$UnitPrice
+
+retail_wo_CID <- rbind(retail_filled, retail_data_w_description_wo_CID)
+#This is the all the data without CustomerID.
+#Combine this with retail_data_DescandCID to obtain data that can be used for analysis that does not require CustomerID.
 
 #####################################
 #                                   #
