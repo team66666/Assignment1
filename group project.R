@@ -46,7 +46,67 @@ number2 <- number[-c(14:28,58:59,152:156,167,174,179:186,321,323,598,603,649,655
                      3835,3976:3978,3986,3989:3997,4167:4181),]
 new_retail_data <- retail_data[retail_data$Description %in% number2[,1],]
 
+missingCust <- new_retail_data %>% filter(is.na(CustomerID))
+knownCust <- new_retail_data %>% filter(!is.na(CustomerID))
+intersect(missingCust$InvoiceNo,knownCust$InvoiceNo)
 
+#Since the intersect of the InvoiceNo for those with missing and known CustomerID is empty,
+# there are no rows with missing CustomerID that can be filled using InvoiceNo.
+
+#Below we split the dataset into those with descriptions and those without. 
+missingDctn <- new_retail_data %>% filter(Description == "")
+retail_data_w_description <- new_retail_data %>% filter(Description != "")
+intersect(missingDctn$StockCode, retail_data_w_description$StockCode)
+
+retail_data_DescandCID <- retail_data_w_description %>% filter(!is.na(CustomerID))
+retail_data_w_description_wo_CID <- retail_data_w_description %>% filter(is.na(CustomerID))
+#retail_data_w_description is split into those with CID and those without.
+#retail_data_DescandCID is data that has BOTH Description and CID. (Use for Analysis where CustomerID is needed)
+
+
+#For the data without descriptions, we fill in the descriptions using StockCode.
+missingDctn %>% filter(!is.na(CustomerID))
+#There are no products that are missing description and have a CustomerID.
+dim(missingDctn)
+#1454 rows without Descriptions
+
+unknownDctn <- unique(subset(missingDctn,missingDctn$Description == "", "StockCode"))
+foundDctn <- unique(subset(new_retail_data,StockCode %in% unknownDctn$StockCode & new_retail_data$Description != ""))
+for(i in unknownDctn$StockCode) {
+  if (i %in% foundDctn$StockCode) {
+    missingDctn[missingDctn$StockCode == i,"Description"] <- subset(foundDctn,StockCode %in% i,"Description")[1,]
+  }  
+}
+missingDctn %>% filter(Description == "") %>% dim()
+#There are still 124 rows without Descriptions.
+
+#Removing rows without descriptions
+retail_filled_descriptions <- missingDctn %>% filter(Description != "")
+
+retail_filled_descriptions %>% filter(UnitPrice == 0) %>% dim()
+retail_filled_descriptions %>% dim()
+#All 1330 rows in retail_filled_description have UnitPrice = 0.
+
+unknownPrice <- unique(subset(retail_filled_descriptions,retail_filled_descriptions$UnitPrice == 0, "StockCode"))
+foundPrice <- unique(subset(new_retail_data,StockCode %in% unknownPrice$StockCode & new_retail_data$UnitPrice != 0)) %>% arrange(StockCode,desc(Date, Time))
+for(i in unknownPrice$StockCode) {
+  if (i %in% foundPrice$StockCode) {
+    retail_filled_descriptions[retail_filled_descriptions$StockCode == i,"UnitPrice"] <- subset(foundPrice,StockCode %in% i,"UnitPrice")[1,]
+  }  
+}
+
+retail_filled_descriptions %>% filter(UnitPrice == 0) %>% dim()
+#There are still 26 rows with UnitPrice = 0.
+
+retail_filled <- retail_filled_descriptions %>% filter(UnitPrice!= 0)
+#This is the data with filled descriptions and price
+
+#Update the TotalSpent column
+retail_filled$TotalSpent = retail_filled$Quantity * retail_filled$UnitPrice
+
+retail_wo_CID <- rbind(retail_filled, retail_data_w_description_wo_CID)
+#This is the all the data without CustomerID.
+#Combine this with retail_data_DescandCID to obtain data that can be used for analysis that does not require CustomerID.
 
 #####################################
 #                                   #
@@ -54,65 +114,10 @@ new_retail_data <- retail_data[retail_data$Description %in% number2[,1],]
 #                                   #
 #####################################
 
-#Now, for each customer, we find the days between each subsequent purchase, the total number of visits made, and amount spent.
-total_visits <- NULL
-total_amount <- NULL
-since_prev <- NULL
-for (id in unique(retail_data$CustomerID)) {
-  total_visits <- c(total_visits, sum(retail_data$CustomerID == id))
-  total_amount <- c(total_amount, sum(retail_data$totalspent[retail_data$CustomerID == id]))
-  since_prev <- c(since_prev, min(as.numeric(as.Date("2011-11-01") - retail_data$Date[retail_data$CustomerID == id])))
-  }
-
-head(total_visits)
-length(total_visits) #4372 unique visits(i.e unique customer ID)
-head(total_amount)
-
-customer_retail_data <- data.frame(id=unique(retail_data$CustomerID),
-                                   total_visits=total_visits,
-                                   total_amount=total_amount,
-                                   since_prev=since_prev)
-head(customer_retail_data)
-
-customers <- data.frame(cid = unique(retail_data$CustomerID))
-
-#The following commands assign the recency, frequency, and monetary value rating on a scale of 1-5 with 5 being the most recent,
-#most frequent, most monetary value, and 1 being the least recent, least frequent and least monetary value.
-
-#New R, F, M-score assigning function.
-map_quantiles <- function(vect, num_groups=5) { 
-  ranks <- order(vect)
-  result <- numeric(length(vect))
-  one_unit <- floor(length(vect) / num_groups)
-  for (index in 1:num_groups) { 
-    if (index == num_groups) { 
-      result[(index - 1) * one_unit < ranks] <- index 
-    } else {
-        result[(index - 1) * one_unit < ranks & ranks <= index * one_unit] <- index 
-    }
-  } 
-  result
-}
-
-customers$recency <- 6 - map_quantiles(customer_retail_data$since_prev)
-
-customers$frequency <- map_quantiles(customer_retail_data$total_visits)
-
-customers$amount <- map_quantiles(customer_retail_data$total_amount)
-
-#The RFM score is then a concatenation of the above three scores. Here is its calculation:
-customers$rfm <- (customers$recency*100 + customers$frequency*10 + customers$amount)
 head(customers)
-
-
-
-
 
 library(dplyr)
 library(gtools)
-
-
-
 
 #total spent for each invoice
 
@@ -161,14 +166,6 @@ r<- mapvalues(r,  from = levelr, to = c(5,4,3,2,1))
 detach("package:plyr", unload=TRUE) 
 
 #Getting the RFM values
-
-
 rfm <- data.frame(CID = tempr$CustomerID, r = r, f = f, m =m, stringsAsFactors=FALSE)
 rfm <- add_column(rfm,RFM = paste(rfm$r, rfm$f,rfm$m, sep = ""))
-
-
-
-
-
-
 
