@@ -135,7 +135,6 @@ rfm_data_3 <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-07-01"))
 #                                   #
 #####################################
 
-head(customers)
 
 library(dplyr)
 library(gtools)
