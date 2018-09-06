@@ -22,8 +22,8 @@ length(unique(retail_data$CustomerID)) #4373 unique customer IDs
 invoicedate <- as.character(retail_data$InvoiceDate)
 
 #Creating a Date & Time column 
-retail_data$Time <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %H:%M"),"%H:%M")
-retail_data$Date <- format(as.POSIXct(retail_data$InvoiceDate,format="%d/%m/%Y %H:%M"),"%Y-%m-%d")
+retail_data$Time <- format(as.POSIXct(invoicedate,format="%d/%m/%Y %H:%M"),"%H:%M")
+retail_data$Date <- format(as.POSIXct(invoicedate,format="%d/%m/%Y %H:%M"),"%Y-%m-%d")
 retail_data$InvoiceDate <- NULL
 
 #Creating a TotalSpent column
