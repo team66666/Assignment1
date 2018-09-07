@@ -17,8 +17,11 @@ length(unique(retail_data$CustomerID)) #4373 unique customer IDs
 #          Data Cleaning            #
 #                                   #
 #####################################
-#Convert Invoice date to character class first 
 
+#Convert CustomerID to factor
+retail_data$CustomerID <- as.factor(retail_data$CustomerID)
+
+#Convert Invoice date to character class first 
 invoicedate <- as.character(retail_data$InvoiceDate)
 
 #Creating a Date & Time column 
@@ -39,7 +42,7 @@ number <- number[sort(number$Desciption),]
 number2 <- number[-c(14:28,58:59,152:156,167,174,179:186,321,323,598,603,649,655,695,
                      742:744,883,918,921,954:957,987,1001:1013,1061,1069:1070,1137:1151,
                      1153,1196,1293,1297,1418,1420:1426,1536,1681:1682,1790,1836:1838,
-                     1839:1840,1901,1964,2068,2085:2087,2145:2146,2151,2155,2170,2187,
+                     1839:1840,1901,1964,2068,2085:2087,2145:2146,2155,2170,2187,
                      2188,2256:2258,2261,2263,2288:2290,2312,2343,2378,2380,2465,2817:2818,
                      2830:2831,2877:2879,3031:3033,3113:3114,3132,3134:3136,3434:3435,
                      3570,3582:3590,3635:3636,3703:3704,3728:3729,3734:3738,3739,3744,
@@ -95,9 +98,6 @@ for(i in unknownPrice$StockCode) {
   }  
 }
 
-retail_filled_descriptions %>% filter(UnitPrice == 0) %>% dim()
-#There are still 26 rows with UnitPrice = 0.
-
 retail_filled <- retail_filled_descriptions %>% filter(UnitPrice!= 0)
 #This is the data with filled descriptions and price
 
@@ -106,10 +106,7 @@ retail_filled$TotalSpent = retail_filled$Quantity * retail_filled$UnitPrice
 
 retail_wo_CID <- rbind(retail_filled, retail_data_w_description_wo_CID)
 #This is the all the data without CustomerID.
-#Combine this with retail_data_DescandCID to obtain data that can be used for analysis that does not require CustomerID.
-
-#Removing those with InvoiceNo. starting with "C"
-retail_data_DescandCID <- retail_data_DescandCID %>% filter(!str_detect(InvoiceNo,"C"))
+#Combine this with retail_data_DescandCID to obtain data that can be used for analysis that does not require CustomerID
 
 #Removing those with very large quantity (>12000)
 retail_data_DescandCID <- retail_data_DescandCID %>% filter(Quantity <= 12000)
@@ -117,8 +114,12 @@ retail_data_DescandCID <- retail_data_DescandCID %>% filter(Quantity <= 12000)
 #Removing those with quantity > 1600 & Unitprice==0
 retail_data_DescandCID <- retail_data_DescandCID %>% filter(Quantity<1600 && UnitPrice!=0)
 
+#Removing those with InvoiceNo. starting with "C"
+retail_data_wo_cancelled <- retail_data_DescandCID %>% filter(!str_detect(InvoiceNo,"C"))
+
 #Converting the Date column to a "DATE" class.
 retail_data_DescandCID$Date <- as.Date(retail_data_DescandCID$Date)
+retail_data_wo_cancelled$Date <- as.Date(retail_data_wo_cancelled$Date)
 
 #(start)dec 2010 - march 2011(end)
 rfm_data_1 <- retail_data_DescandCID %>% filter(Date <= as.Date("2011-03-31"))
