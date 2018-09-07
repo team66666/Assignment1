@@ -118,17 +118,20 @@ retail_data_DescandCID <- retail_data_DescandCID %>% filter(Quantity<1600 && Uni
 retail_data_wo_cancelled <- retail_data_DescandCID %>% filter(!str_detect(InvoiceNo,"C"))
 
 #Converting the Date column to a "DATE" class.
-retail_data_DescandCID$Date <- as.Date(retail_data_DescandCID$Date)
-retail_data_wo_cancelled$Date <- as.Date(retail_data_wo_cancelled$Date)
+retail_data_DescandCID$Date <- as.Date(retail_data_DescandCID$Date) #for M
+retail_data_wo_cancelled$Date <- as.Date(retail_data_wo_cancelled$Date) #for R & F 
 
 #(start)dec 2010 - march 2011(end)
-rfm_data_1 <- retail_data_DescandCID %>% filter(Date <= as.Date("2011-03-31"))
+rfm_data_1_M <- retail_data_DescandCID %>% filter(Date <= as.Date("2011-03-31"))
+rfm_data_1_RF <- retail_data_wo_cancelled %>% filter(Date <= as.Date("2011-03-31"))
 
 #(start)april 2011 - july 2011(end)
-rfm_data_2 <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-04-01")) %>% filter(Date < as.Date("2011-07-01")) 
+rfm_data_2_M <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-04-01")) %>% filter(Date < as.Date("2011-07-01")) 
+rfm_data_2_RF <- retail_data_wo_cancelled %>% filter(Date >= as.Date("2011-04-01")) %>% filter(Date < as.Date("2011-07-01")) 
 
 #(start)aug 2011 - dec 2011(end)
-rfm_data_3 <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-07-01"))
+rfm_data_3_M <- retail_data_DescandCID %>% filter(Date >= as.Date("2011-07-01"))
+rfm_data_3_RF <- retail_data_wo_cancelled %>% filter(Date >= as.Date("2011-07-01"))
 
 #####################################
 #                                   #
