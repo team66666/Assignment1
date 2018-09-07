@@ -15,3 +15,6 @@ Extra columns:
 - Time: Time in HH:MM
 - TotalSpent : A column of all the totalspent per row, qty * unit price = total spent for that row.
 
+# Datasets
+- retail_data_DescandCID: Used for calculating M in RFM
+- retail_data_wo_cancelled: retail_data_DescandCID after removing all cancelled orders. Used for calcuting R & F in RFM
