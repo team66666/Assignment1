@@ -582,6 +582,7 @@ plot(rules,method="graph")
 
 plot(rules[1:10],method = "graph",
      control = list(type = "Items"))
+plot(rules[1:10],method="paracoord")
 
 
 ####################################
@@ -624,6 +625,6 @@ ggplot(data = latency_data) +
   geom_bar(mapping = aes(x = Purchases, y = average_latency), stat = "identity")
 ggplot(data = latency_data) +
   geom_bar(mapping = aes(x = Purchases, y = cumulative_latency), stat = "identity")
-plot(rules[1:10],method="paracoord")
+
 
 
