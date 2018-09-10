@@ -136,6 +136,76 @@ rfm_data_3_RF <- retail_data_wo_cancelled %>% filter(Date >= as.Date("2011-07-01
 
 #####################################
 #                                   #
+# Data Analysis with Visualisation  #
+#                                   #
+#####################################
+library(ggplot2)
+
+#Top 10 most popular item sold for this retailer: 
+data1 <- retail_wo_CID %>% filter(!str_detect(InvoiceNo,"C"))
+full_data <- rbind(retail_data_wo_cancelled,data1)
+mostpops <- full_data %>% group_by(Description) %>% summarise(NumberSold = sum(Quantity))
+mostpops <- mostpops[order(-mostpops$NumberSold),]
+mostpops <- mostpops[1:10,]
+ggplot(mostpops,aes(x=mostpops$Description,y=mostpops$NumberSold,fill=mostpops$Description)) +
+  geom_bar(stat="identity") + ylab("Number Sold") + xlab("Description") + title("Top 10 items sold")
+
+#Total revenue earned for each country. Cancelled transactions are included in the calculation
+revenue_per_country_data <- retail_data_wo_cancelled %>% group_by(Country) %>% summarise(TotalRevenue = sum(TotalSpent))
+revenue_per_country_data <- revenue_per_country_data[order(-revenue_per_country_data$TotalRevenue),]
+
+#plot the barchart for top 10 countries with highest revenue
+top10revenue <- revenue_per_country_data[1:10,]
+ggplot(data=top10revenue,
+       aes(y=top10revenue$TotalRevenue,x=top10revenue$Country,fill=top10revenue$Country)) +
+        geom_bar(stat="identity") +
+        xlab("Country") + 
+        ylab("Total Revenue") + 
+        labs(title="Total Revenue Per Country(Top 10)", fill="Country")
+
+#plot the barchart for the bottom 10 countries with lowest revenue
+bottom10revenue <- revenue_per_country_data[27:37,]
+ggplot(data=bottom10revenue,
+       aes(y=bottom10revenue$TotalRevenue,x=bottom10revenue$Country,fill=bottom10revenue$Country)) +
+      geom_bar(stat="identity") +
+      xlab("Country") + 
+      ylab("Total Revenue") + 
+      labs(title="Total Revenue Per Country(Bottom 10)", fill="Country")
+
+
+retail_wo_CID <- rbind(retail_filled, retail_data_w_description_wo_CID)
+retail_wo_CID$Date <- as.Date(retail_wo_CID$Date)
+combined_data <- rbind(retail_wo_CID,retail_data_DescandCID)
+combined_data <- combined_data %>% filter(!str_detect(InvoiceNo,"C"))
+
+# Visualisation of top 5 countries by number of orders
+countries <- combined_data %>% group_by(Country) %>% summarise(count=n()) %>% arrange(desc(count)) 
+top_4 <- countries %>% top_n(n = 4, count)
+others <- countries[5:38,]
+s <- sum(others$count)
+levels(others$Country) <- c(levels(others$Country),"Others")
+others <- rbind(c("Others", s),others)[1,]
+countries <- rbind(top_4,others)
+
+
+ggplot(countries, aes(x=1, fill=reorder(Country,count),y=count)) + geom_bar(stat = "identity") +
+  xlab("") +
+  ylab("Count") + theme(axis.ticks = element_blank(),axis.text.x = element_blank()) +
+  labs(fill="Country") +  scale_fill_brewer(palette="Set1")
+
+
+#Visualisation of Distribution of Number of Orders by Month
+library(lubridate)
+by_months <- combined_data %>% mutate(month=month(Date))  
+by_months <- by_months %>% group_by(month) %>% summarise(count=n())
+by_months$month <- c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+by_months$month = factor(by_months$month, levels = month.abb)
+ggplot(by_months) + geom_bar(aes(x=month,y=count), stat="identity")
+
+
+
+#####################################
+#                                   #
 #               RFM                 #
 #                                   #
 #####################################
