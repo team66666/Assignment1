@@ -585,6 +585,4 @@ plot(rules[1:10],method = "graph",
 
 plot(rules[1:10],method="paracoord")
 
-##############################
-=======
 
