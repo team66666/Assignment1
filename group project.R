@@ -476,6 +476,7 @@ count_all <- group_by(segments_all, Segment = segments_all) %>% summarise(Count 
 
 library(ggplot2)
 
+
 levels <- as.factor(c("Champions", "Loyal Customers", "Potential Loyalist", "Need Attention", "About To Sleep","At Risk", "Hibernating",  "Others"))
 
 
@@ -585,3 +586,5 @@ plot(rules[1:10],method = "graph",
 plot(rules[1:10],method="paracoord")
 
 ##############################
+=======
+
