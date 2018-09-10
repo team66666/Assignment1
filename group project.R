@@ -697,4 +697,37 @@ ggplot(data = latency_data) +
   geom_bar(mapping = aes(x = Purchases, y = cumulative_latency), stat = "identity")
 
 
+#Latency for customers WE WANT TO WIN BACK
+winback_segment <- segments_all %>% filter(segments_all %in% c("At Risk","Hibernating","About To Sleep","Need Attention"))
+winback_data <- subset(latency2,latency2$CustomerID %in% winback_segment$CID)
+
+find_avg_latency <- function(greater_purchase_num) {
+  as.numeric((winback_data%>%filter(total_purchases>=greater_purchase_num)%>%
+                summarise(latency=nth(Date,greater_purchase_num)-nth(Date,greater_purchase_num-1))%>%summarise(mean(latency)))[[1]])}
+
+one_to_two_wb <- find_avg_latency(2)
+two_to_three_wb <- find_avg_latency(3)
+three_to_four_wb <- find_avg_latency(4)
+four_to_five_wb <- find_avg_latency(5) 
+five_to_six_wb <- find_avg_latency(6)
+print(c(one_to_two_wb, two_to_three_wb, three_to_four_wb, four_to_five_wb,five_to_six_wb))
+
+between_purchases <- c("1 and 2", "2 and 3", "3 and 4", "4 and 5")
+average_latency_wb <- c(one_to_two_wb, two_to_three_wb, three_to_four_wb, four_to_five_wb,five_to_six_wb)
+cumulative_latency_wb <- cumsum(average_latency)
+
+latency_data_wb <- tribble(
+  ~Purchases,    
+  "1 and 2",       
+  "2 and 3",       
+  "3 and 4",      
+  "4 and 5",      
+  "5 and 6"      
+)
+
+latency_data_wb <- latency_data_wb %>% cbind(average_latency_wb) %>% cbind(cumulative_latency_wb)
+ggplot(data = latency_data_wb) +
+  geom_bar(mapping = aes(x = Purchases, y = average_latency_wb), stat = "identity")
+ggplot(data = latency_data_wb) +
+  geom_bar(mapping = aes(x = Purchases, y = cumulative_latency_wb), stat = "identity")
 
