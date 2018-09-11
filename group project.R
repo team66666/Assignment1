@@ -3,7 +3,8 @@
 #           Reading Data            #
 #                                   #
 #####################################
-
+library(dplyr)
+library(tidyverse)
 library(stringr)
 retail_data <- read.csv("online_retail.csv",header=TRUE)
 head(retail_data)
