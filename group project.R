@@ -630,29 +630,54 @@ library(arules)
 library(arulesViz)
 
 retail_items <- retail_data_DescandCID %>% select(Description,InvoiceNo)
-trans <- split(retail_data$Description ,retail_data$InvoiceNo)
-
-################################################################################
-# Now, we can find the associated rules using a 0.1% support and 8% confidence level.
-
-rules <- apriori(trans, parameter = list(supp=0.01, conf=0.8))
-inspect(sort(rules, by="lift"))
 
 
-# intimate links with the baskets:
-plot(rules)
+library(plyr)
+trans <- ddply(retail_data_DescandCID,c("InvoiceNo","Date"),
+                         function(df1)paste(df1$Description,
+                                            collapse = ","))
 
-# We want to select rules which ideally have a high confidence, support, AND
-# lift. However, in cases where this is not possible, we prioritize selection of
-# rules with the highest lift.
-plot(rules,method="grouped")
-plot(rules,method="graph")
 
-#top 10 rules
+trans$InvoiceNo <- NULL
 
+trans$Date <- NULL
+
+colnames(trans) <- c("items")
+
+
+
+
+write.csv(trans,"market_basket_transactions.csv", quote = FALSE, row.names = TRUE)
+
+
+tr <- read.transactions('market_basket_transactions.csv', format = 'basket', sep=',')
+
+
+`trObj<-as(dataframe.dat,"transactions")`
+
+summary(tr)
+itemFrequencyPlot(tr,topN=20,type="absolute", main = "Top 20 Absolute Item Frequency Plot")
+
+# Parameter Specification: min_sup=0.01 and min_confidence=0.8 values with 10 items as max of items in a rule.
+association.rules <- apriori(tr, parameter = list(supp = 0.01, conf=0.8,maxlen=10))
+summary(association.rules)
+
+inspect(sort(association.rules, by = "lift")[1:10])
 plot(rules[1:10],method = "graph",
      control = list(type = "Items"))
-plot(rules[1:10],method="paracoord")
+
+# We can also find out Customers who bought SUGAR also bought.... :
+
+t.association.rules <- apriori(tr, parameter = list(supp=0.01, conf=0.8, maxlen = 10),appearance = list(lhs="SUGAR",default="rhs"))
+inspect(sort(t.association.rules, by = "lift"))
+
+#### TOP 10 RULES WITH min_sup - 0.01 and min_confidence = 0.8
+
+top10rules <- head(association.rules, n = 10, by = "lift")
+plot(top10rules, method = "graph",   control = list(type = "Items"))
+plot(top10rules,method="paracoord")
+
+
 
 
 ####################################
