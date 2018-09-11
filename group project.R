@@ -173,6 +173,18 @@ ggplot(data=bottom10revenue,
       ylab("Total Revenue") + 
       labs(title="Total Revenue Per Country(Bottom 10)", fill="Country")
 
+#Revenue per country plot
+top_4_r <- revenue_per_country_data %>% top_n(n = 4, TotalRevenue) 
+others_r <- revenue_per_country_data[5:37,]
+s <- sum(others_r$TotalRevenue)
+levels(others_r$Country) <- c(levels(others_r$Country),"Others")
+others_r <- rbind(c("Others", s),others_r)[1,]
+countries_r <- rbind(top_4_r,others_r)
+countries_r$TotalRevenue <- as.numeric(countries_r$TotalRevenue)/1000
+ggplot(countries_r,aes(x=reorder(Country,-TotalRevenue),y=TotalRevenue,fill=Country)) + 
+  geom_bar(stat="identity") + xlab("Countries") + ylab("Total Revenue (Thousands)") + labs(fill="Countries")
+
+
 
 retail_wo_CID <- rbind(retail_filled, retail_data_w_description_wo_CID)
 retail_wo_CID$Date <- as.Date(retail_wo_CID$Date)
